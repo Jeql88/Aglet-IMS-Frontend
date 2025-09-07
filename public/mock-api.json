@@ -1,0 +1,212 @@
+{
+  "shoes": [
+    {
+      "ShoeID": 1,
+      "Brand": "Nike",
+      "Model": "Air Jordan 1",
+      "Colorway": "Bred",
+      "Size": 10,
+      "Condition": "New",
+      "PurchasePrice": 120.0,
+      "CurrentStock": 5
+    },
+    {
+      "ShoeID": 2,
+      "Brand": "Adidas",
+      "Model": "Yeezy 350",
+      "Colorway": "Zebra",
+      "Size": 9,
+      "Condition": "Like New",
+      "PurchasePrice": 200.0,
+      "CurrentStock": 2
+    },
+    {
+      "ShoeID": 3,
+      "Brand": "Converse",
+      "Model": "Chuck Taylor All Star",
+      "Colorway": "Black",
+      "Size": 11,
+      "Condition": "New",
+      "PurchasePrice": 40.0,
+      "CurrentStock": 12
+    },
+    {
+      "ShoeID": 4,
+      "Brand": "Nike",
+      "Model": "Air Max 90",
+      "Colorway": "Infrared",
+      "Size": 8,
+      "Condition": "Used",
+      "PurchasePrice": 60.0,
+      "CurrentStock": 1
+    },
+    {
+      "ShoeID": 5,
+      "Brand": "Adidas",
+      "Model": "Superstar",
+      "Colorway": "White/Black",
+      "Size": 10,
+      "Condition": "New",
+      "PurchasePrice": 70.0,
+      "CurrentStock": 7
+    },
+    {
+      "ShoeID": 6,
+      "Brand": "Puma",
+      "Model": "RS-X",
+      "Colorway": "Multicolor",
+      "Size": 9,
+      "Condition": "New",
+      "PurchasePrice": 85.0,
+      "CurrentStock": 3
+    },
+    {
+      "ShoeID": 7,
+      "Brand": "Vans",
+      "Model": "Old Skool",
+      "Colorway": "Black/White",
+      "Size": 8,
+      "Condition": "Like New",
+      "PurchasePrice": 50.0,
+      "CurrentStock": 4
+    },
+    {
+      "ShoeID": 8,
+      "Brand": "Nike",
+      "Model": "Dunk Low",
+      "Colorway": "University Red",
+      "Size": 12,
+      "Condition": "New",
+      "PurchasePrice": 110.0,
+      "CurrentStock": 0
+    }
+  ],
+  "sources": [
+    {
+      "SourceID": 1,
+      "Name": "StockX",
+      "ContactInfo": "support@stockx.com"
+    },
+    {
+      "SourceID": 2,
+      "Name": "Facebook Marketplace - John Doe",
+      "ContactInfo": "john.doe@example.com"
+    },
+    {
+      "SourceID": 3,
+      "Name": "Local Wholesaler - SoleSupply",
+      "ContactInfo": "+63 912 345 6789"
+    },
+    {
+      "SourceID": 4,
+      "Name": "Nike Official Store",
+      "ContactInfo": "store@nike.com"
+    }
+  ],
+  "stockTransactions": [
+    {
+      "TransactionID": 1001,
+      "ShoeID": 1,
+      "TransactionType": "In",
+      "Quantity": 3,
+      "Date": "2025-09-01T10:15:00Z",
+      "Notes": "Bought from StockX"
+    },
+    {
+      "TransactionID": 1002,
+      "ShoeID": 2,
+      "TransactionType": "In",
+      "Quantity": 2,
+      "Date": "2025-08-28T14:00:00Z",
+      "Notes": "Local restock"
+    },
+    {
+      "TransactionID": 1003,
+      "ShoeID": 1,
+      "TransactionType": "Out",
+      "Quantity": 1,
+      "Date": "2025-09-02T17:30:00Z",
+      "Notes": "Sold to walk-in"
+    },
+    {
+      "TransactionID": 1004,
+      "ShoeID": 4,
+      "TransactionType": "Adjustment",
+      "Quantity": -1,
+      "Date": "2025-09-03T09:00:00Z",
+      "Notes": "Damaged box - removed from stock"
+    },
+    {
+      "TransactionID": 1005,
+      "ShoeID": 8,
+      "TransactionType": "In",
+      "Quantity": 1,
+      "Date": "2025-08-25T11:20:00Z",
+      "Notes": "Bought from Nike Official Store"
+    },
+    {
+      "TransactionID": 1006,
+      "ShoeID": 5,
+      "TransactionType": "Out",
+      "Quantity": 2,
+      "Date": "2025-09-04T13:45:00Z",
+      "Notes": "Online sale"
+    }
+  ],
+  "purchaseRecords": [
+    {
+      "PurchaseID": 5001,
+      "ShoeID": 1,
+      "SourceID": 1,
+      "PurchaseDate": "2025-08-31T08:00:00Z",
+      "Quantity": 3,
+      "UnitPrice": 115.0,
+      "TotalCost": 345.0
+    },
+    {
+      "PurchaseID": 5002,
+      "ShoeID": 2,
+      "SourceID": 3,
+      "PurchaseDate": "2025-08-27T12:00:00Z",
+      "Quantity": 2,
+      "UnitPrice": 195.0,
+      "TotalCost": 390.0
+    },
+    {
+      "PurchaseID": 5003,
+      "ShoeID": 3,
+      "SourceID": 3,
+      "PurchaseDate": "2025-07-15T09:30:00Z",
+      "Quantity": 12,
+      "UnitPrice": 38.0,
+      "TotalCost": 456.0
+    },
+    {
+      "PurchaseID": 5004,
+      "ShoeID": 4,
+      "SourceID": 2,
+      "PurchaseDate": "2025-08-20T16:45:00Z",
+      "Quantity": 1,
+      "UnitPrice": 60.0,
+      "TotalCost": 60.0
+    },
+    {
+      "PurchaseID": 5005,
+      "ShoeID": 5,
+      "SourceID": 3,
+      "PurchaseDate": "2025-09-01T10:10:00Z",
+      "Quantity": 7,
+      "UnitPrice": 68.0,
+      "TotalCost": 476.0
+    },
+    {
+      "PurchaseID": 5006,
+      "ShoeID": 8,
+      "SourceID": 4,
+      "PurchaseDate": "2025-08-25T11:00:00Z",
+      "Quantity": 1,
+      "UnitPrice": 105.0,
+      "TotalCost": 105.0
+    }
+  ]
+}
