@@ -1,3 +1,4 @@
+// ...existing code...
 <template>
   <div class="inventory-page">
     <el-card>
@@ -6,11 +7,11 @@
           <span class="title">Inventory</span>
           <div class="actions">
             <el-input
+              class="search"
               v-model="search"
               placeholder="Search brand/model/colorway"
               clearable
               size="small"
-              style="width: 280px; margin-right: 8px"
             />
             <el-button
               v-if="canCrudShoes"
@@ -24,55 +25,60 @@
         </div>
       </template>
 
-      <el-table
-        :data="filteredShoes"
-        border
-        stripe
-        style="width: 100%"
-        height="520"
-      >
-        <el-table-column prop="ShoeID" label="ID" width="80" />
-        <el-table-column prop="Brand" label="Brand" min-width="120" />
-        <el-table-column prop="Model" label="Model" min-width="160" />
-        <el-table-column prop="Colorway" label="Colorway" min-width="140" />
-        <el-table-column prop="Size" label="Size" width="80" />
-        <el-table-column prop="Condition" label="Condition" width="120" />
-        <el-table-column prop="PurchasePrice" label="Unit Price" width="120">
-          <template #default="scope"
-            >₱{{ formatCurrency(scope.row.PurchasePrice) }}</template
-          >
-        </el-table-column>
-        <el-table-column prop="CurrentStock" label="Stock" width="100" />
-        <el-table-column fixed="right" label="Actions" width="200">
-          <template #default="scope">
-            <el-space wrap size="small">
-              <el-button
-                v-if="canCrudShoes"
-                link
-                type="primary"
-                size="small"
-                @click="openEdit(scope.row)"
-              >
-                Edit
-              </el-button>
+      <div class="table-wrapper">
+        <el-table
+          :data="filteredShoes"
+          border
+          stripe
+          class="inventory-table"
+          style="width: 100%"
+          :height="tableHeight"
+        >
+          <el-table-column prop="ShoeID" label="ID" width="80" />
+          <el-table-column prop="Brand" label="Brand" min-width="120" />
+          <el-table-column prop="Model" label="Model" min-width="160" />
+          <el-table-column prop="Colorway" label="Colorway" min-width="140" />
+          <el-table-column prop="Size" label="Size" width="80" />
+          <el-table-column prop="Condition" label="Condition" width="120" />
+          <el-table-column prop="PurchasePrice" label="Unit Price" width="120">
+            <template #default="scope">
+              ₱{{ formatCurrency(scope.row.PurchasePrice) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="CurrentStock" label="Stock" width="100" />
+          <el-table-column label="Actions" width="140">
+            <template #default="scope">
+              <el-space wrap size="small">
+                <el-button
+                  v-if="canCrudShoes"
+                  link
+                  type="primary"
+                  size="small"
+                  @click="openEdit(scope.row)"
+                >
+                  Edit
+                </el-button>
 
-              <el-popconfirm
-                v-if="canDeleteMasterData"
-                title="Delete this shoe?"
-                confirm-button-text="Delete"
-                cancel-button-text="Cancel"
-                confirm-button-type="danger"
-                width="240"
-                @confirm="onDelete(scope.row)"
-              >
-                <template #reference>
-                  <el-button link type="danger" size="small">Delete</el-button>
-                </template>
-              </el-popconfirm>
-            </el-space>
-          </template>
-        </el-table-column>
-      </el-table>
+                <el-popconfirm
+                  v-if="canDeleteMasterData"
+                  title="Delete this shoe?"
+                  confirm-button-text="Delete"
+                  cancel-button-text="Cancel"
+                  confirm-button-type="danger"
+                  width="240"
+                  @confirm="onDelete(scope.row)"
+                >
+                  <template #reference>
+                    <el-button link type="danger" size="small"
+                      >Delete</el-button
+                    >
+                  </template>
+                </el-popconfirm>
+              </el-space>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </el-card>
 
     <el-dialog
@@ -149,6 +155,7 @@ export default {
       search: "",
       dialogVisible: false,
       dialogMode: "add", // 'add' | 'edit'
+      tableHeight: 520,
       form: {
         ShoeID: null,
         Brand: "",
@@ -191,6 +198,7 @@ export default {
           },
         ],
       },
+      resizeTimeout: null,
     };
   },
   computed: {
@@ -222,6 +230,20 @@ export default {
       } catch (e) {
         return String(num);
       }
+    },
+    updateTableHeight() {
+      const appHeader = document.querySelector(".app-header");
+      const headerH = appHeader ? appHeader.offsetHeight : 56;
+      const reserved = 220;
+      const newH = Math.max(300, window.innerHeight - headerH - reserved);
+      this.tableHeight = newH;
+    },
+    onResize() {
+      if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
+      this.resizeTimeout = setTimeout(() => {
+        this.updateTableHeight();
+        this.resizeTimeout = null;
+      }, 120);
     },
     openAdd() {
       this.dialogMode = "add";
@@ -277,22 +299,59 @@ export default {
       this.$store.dispatch("loadMockData");
     }
   },
+  mounted() {
+    this.updateTableHeight();
+    window.addEventListener("resize", this.onResize);
+  },
+  beforeUnmount() {
+    window.removeEventListener("resize", this.onResize);
+    if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
+  },
 };
 </script>
 
 <style scoped>
 .inventory-page {
-  padding: 4px;
+  padding: 8px;
 }
+
 .card-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
+
 .title {
   font-weight: 600;
 }
+
 .dialog-footer {
   text-align: right;
+}
+
+/* header actions responsive */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.search {
+  width: clamp(160px, 30vw, 360px);
+  min-width: 140px;
+}
+
+/* horizontal scroll to prevent column collapse when sidebar toggles */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* set a min-width so columns remain visible; change if you add/remove columns */
+.inventory-table {
+  min-width: 1060px;
 }
 </style>

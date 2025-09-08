@@ -30,7 +30,7 @@
               placeholder="Search brand/model/notes"
               clearable
               size="small"
-              style="width: 280px; margin-right: 8px"
+              class="search-input"
             />
             <el-button
               v-if="canAddEditTransactions"
@@ -72,66 +72,76 @@
         </el-row>
       </div>
 
-      <el-table
-        :data="rowsFilteredSorted"
-        border
-        stripe
-        style="width: 100%"
-        height="520"
-        v-loading="loading"
-      >
-        <el-table-column prop="DateFmt" label="Date" min-width="140" sortable />
-        <el-table-column prop="BrandModel" label="Shoe" min-width="240" />
-        <el-table-column prop="TransactionType" label="Type" width="120">
-          <template #default="scope">
-            <el-tag :type="typeTagType(scope.row.TransactionType)">
-              {{ scope.row.TransactionType }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="Quantity" label="Qty" width="100">
-          <template #default="scope">
-            <span :class="scope.row.Quantity < 0 ? 'qty-out' : 'qty-in'">
-              {{ scope.row.Quantity }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="Notes"
-          label="Notes"
-          min-width="220"
-          show-overflow-tooltip
-        />
-        <el-table-column fixed="right" label="Actions" width="180">
-          <template #default="scope">
-            <el-space wrap size="small">
-              <el-button
-                v-if="canAddEditTransactions"
-                link
-                type="primary"
-                size="small"
-                @click="openEdit(scope.row)"
-              >
-                Edit
-              </el-button>
+      <div class="table-wrapper">
+        <el-table
+          :data="rowsFilteredSorted"
+          border
+          stripe
+          class="transactions-table"
+          style="width: 100%"
+          :height="tableHeight"
+          v-loading="loading"
+        >
+          <el-table-column
+            prop="DateFmt"
+            label="Date"
+            min-width="140"
+            sortable
+          />
+          <el-table-column prop="BrandModel" label="Shoe" min-width="180" />
+          <el-table-column prop="TransactionType" label="Type" width="120">
+            <template #default="scope">
+              <el-tag :type="typeTagType(scope.row.TransactionType)">
+                {{ scope.row.TransactionType }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="Quantity" label="Qty" width="100">
+            <template #default="scope">
+              <span :class="scope.row.Quantity < 0 ? 'qty-out' : 'qty-in'">
+                {{ scope.row.Quantity }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="Notes"
+            label="Notes"
+            min-width="220"
+            show-overflow-tooltip
+          />
+          <el-table-column fixed="right" label="Actions" width="120">
+            <template #default="scope">
+              <el-space wrap size="small">
+                <el-button
+                  v-if="canAddEditTransactions"
+                  link
+                  type="primary"
+                  size="small"
+                  @click="openEdit(scope.row)"
+                >
+                  Edit
+                </el-button>
 
-              <el-popconfirm
-                v-if="canDeleteTransactions"
-                title="Delete this transaction?"
-                confirm-button-text="Delete"
-                cancel-button-text="Cancel"
-                confirm-button-type="danger"
-                width="260"
-                @confirm="onDelete(scope.row)"
-              >
-                <template #reference>
-                  <el-button link type="danger" size="small">Delete</el-button>
-                </template>
-              </el-popconfirm>
-            </el-space>
-          </template>
-        </el-table-column>
-      </el-table>
+                <el-popconfirm
+                  v-if="canDeleteTransactions"
+                  title="Delete this transaction?"
+                  confirm-button-text="Delete"
+                  cancel-button-text="Cancel"
+                  confirm-button-type="danger"
+                  width="260"
+                  @confirm="onDelete(scope.row)"
+                >
+                  <template #reference>
+                    <el-button link type="danger" size="small"
+                      >Delete</el-button
+                    >
+                  </template>
+                </el-popconfirm>
+              </el-space>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </el-card>
 
     <!-- Add/Edit Dialog -->
@@ -220,6 +230,7 @@ export default {
       search: "",
       dialogVisible: false,
       dialogMode: "add", // 'add' | 'edit'
+      tableHeight: 520,
       form: {
         TransactionID: null,
         ShoeID: null,
@@ -228,6 +239,7 @@ export default {
         Date: new Date().toISOString(),
         Notes: "",
       },
+      resizeTimeout: null,
     };
   },
   computed: {
@@ -354,6 +366,20 @@ export default {
     shoeLabel(s) {
       return `${s.Brand || "Unknown"} - ${s.Model || ""}`;
     },
+    updateTableHeight() {
+      const appHeader = document.querySelector(".app-header");
+      const headerH = appHeader ? appHeader.offsetHeight : 56;
+      const reserved = 280; // More reserved space due to KPI cards
+      const newH = Math.max(300, window.innerHeight - headerH - reserved);
+      this.tableHeight = newH;
+    },
+    onResize() {
+      if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
+      this.resizeTimeout = setTimeout(() => {
+        this.updateTableHeight();
+        this.resizeTimeout = null;
+      }, 120);
+    },
     openAdd() {
       this.dialogMode = "add";
       this.dialogVisible = true;
@@ -430,10 +456,17 @@ export default {
     }
   },
   mounted() {
+    this.updateTableHeight();
+    window.addEventListener("resize", this.onResize);
+
     // Ensure data as well for shoes dropdown
     if (!this.$store.getters.shoes.length) {
       this.$store.dispatch("loadMockData");
     }
+  },
+  beforeUnmount() {
+    window.removeEventListener("resize", this.onResize);
+    if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
   },
   rules: {
     // keep component options clean; rules are inside data()
@@ -443,18 +476,31 @@ export default {
 
 <style scoped>
 .transactions-page {
-  padding: 4px;
+  padding: 8px;
 }
 
 .card-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.title {
+  font-weight: 600;
 }
 
 .filters {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.search-input {
+  width: clamp(180px, 30vw, 280px);
+  min-width: 160px;
 }
 
 .section {
@@ -488,5 +534,52 @@ export default {
 .qty-out {
   color: #f56c6c;
   font-weight: 600;
+}
+
+.dialog-footer {
+  text-align: right;
+}
+
+/* Horizontal scroll to prevent column collapse when sidebar toggles */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Set a min-width so columns remain visible; adjust based on your columns */
+.transactions-table {
+  min-width: 690px;
+}
+
+/* Additional professional styling */
+.transactions-table .el-table__header-wrapper th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.transactions-table .el-table__row:hover {
+  background-color: #f8f9fa;
+}
+
+.transactions-table .el-table__body .el-table__row td {
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* Better tag styling */
+.el-tag {
+  border-radius: 4px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+/* Improved date column */
+.transactions-table .el-table__body td:first-child {
+  font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas,
+    "Courier New", monospace;
+  font-size: 13px;
+  color: #6c757d;
 }
 </style>
