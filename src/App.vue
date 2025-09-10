@@ -13,12 +13,12 @@
       </div>
       <div class="header-right">
         <el-breadcrumb separator="/">
-          <el-breadcrumb-item to="/dashboard">Dashboard</el-breadcrumb-item>
           <el-breadcrumb-item
-            v-for="(m, idx) in $route.matched.slice(1)"
-            :key="idx"
+            v-for="(m, idx) in $route.matched"
+            :key="m.path || idx"
+            :to="idx === 0 ? '/dashboard' : undefined"
           >
-            {{ m.name || m.path }}
+            {{ idx === 0 ? 'Dashboard' : (m.name || m.path) }}
           </el-breadcrumb-item>
         </el-breadcrumb>
         <div class="header-controls">
@@ -60,6 +60,10 @@
             <el-icon><User /></el-icon>
             <span>Suppliers</span>
           </el-menu-item>
+          <el-menu-item index="/purchases">
+            <el-icon><ShoppingCartFull /></el-icon>
+            <span>Purchase Records</span>
+          </el-menu-item>
           <el-menu-item index="/about">
             <el-icon><InfoFilled /></el-icon>
             <span>About</span>
@@ -83,6 +87,7 @@ import {
   List,
   User,
   InfoFilled,
+  ShoppingCartFull,
 } from "@element-plus/icons-vue";
 
 export default {
@@ -93,6 +98,7 @@ export default {
     List,
     User,
     InfoFilled,
+    ShoppingCartFull,
   },
   data() {
     return {
@@ -111,7 +117,7 @@ export default {
   },
   created() {
     // Ensure mock data is loaded on app start
-    this.$store.dispatch("loadMockData");
+    this.$store.dispatch("loadAll");
   },
 };
 </script>

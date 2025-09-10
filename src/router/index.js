@@ -5,6 +5,7 @@ const Dashboard = () => import("../views/DashboardView.vue");
 const Inventory = () => import("../views/InventoryView.vue");
 const Transactions = () => import("../views/TransactionsView.vue");
 const Suppliers = () => import("../views/SuppliersView.vue");
+const PurchaseRecords = () => import("../views/PurchaseRecordsView.vue");
 const About = () =>
   import(/* webpackChunkName: "about" */ "../views/AboutView.vue");
 
@@ -29,6 +30,11 @@ const routes = [
     path: "/suppliers",
     name: "suppliers",
     component: Suppliers,
+  },
+  {
+    path: "/purchases",
+    name: "purchases",
+    component: PurchaseRecords,
   },
   {
     path: "/about",

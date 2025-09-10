@@ -153,6 +153,30 @@
           </el-col>
         </el-row>
       </div>
+
+      <!-- Row 4: Recent Purchases -->
+      <div class="section">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">Recent Purchase Records</div>
+          </template>
+          <el-table
+            :data="recentPurchasesDisplay"
+            border
+            stripe
+            style="width: 100%"
+            height="320"
+          >
+            <el-table-column prop="PurchaseDateFmt" label="Date" min-width="120" />
+            <el-table-column prop="ShoeLabel" label="Shoe" min-width="180" />
+            <el-table-column prop="SourceLabel" label="Supplier" min-width="160" />
+            <el-table-column prop="Quantity" label="Qty" width="100" />
+            <el-table-column prop="TotalCost" label="Total Cost" width="130">
+              <template #default="scope">₱{{ formatCurrency(scope.row.TotalCost) }}</template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+      </div>
     </template>
   </div>
 </template>
@@ -176,6 +200,9 @@ export default {
       "transactionChartOption",
       "lowStockList",
       "recentTransactions",
+      "purchaseRecords",
+      "shoes",
+      "sources",
     ]),
     LOW_STOCK_THRESHOLD() {
       return LOW_STOCK_THRESHOLD;
@@ -192,6 +219,23 @@ export default {
             ? -Math.abs(Number(t.Quantity) || 0)
             : Number(t.Quantity) || 0,
       }));
+    },
+    recentPurchasesDisplay() {
+      const shoeMap = new Map((this.shoes || []).map((s) => [s.ShoeID, s]));
+      const supplierMap = new Map((this.sources || []).map((s) => [s.SourceID, s]));
+      return [...(this.purchaseRecords || [])]
+        .sort((a, b) => new Date(b.PurchaseDate) - new Date(a.PurchaseDate))
+        .slice(0, 5)
+        .map((r) => {
+          const s = shoeMap.get(r.ShoeID);
+          const sup = supplierMap.get(r.SourceID);
+          return {
+            ...r,
+            PurchaseDateFmt: this.formatDate(r.PurchaseDate),
+            ShoeLabel: s ? `${s.Brand || "Unknown"} - ${s.Model || ""}` : `Shoe #${r.ShoeID}`,
+            SourceLabel: sup ? sup.Name : `Supplier #${r.SourceID}`,
+          };
+        });
     },
   },
   methods: {
@@ -225,7 +269,7 @@ export default {
   },
   created() {
     if (!this.$store.getters.loading && !this.$store.getters.shoes.length) {
-      this.$store.dispatch("loadMockData");
+      this.$store.dispatch("loadAll");
     }
   },
 };

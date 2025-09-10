@@ -195,7 +195,7 @@ export default {
   },
   created() {
     if (!this.$store.getters.loading && !this.$store.getters.sources.length) {
-      this.$store.dispatch("loadMockData");
+      this.$store.dispatch("loadAll");
     }
   },
 };

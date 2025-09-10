@@ -142,6 +142,18 @@
           </el-table-column>
         </el-table>
       </div>
+      <div class="pagination">
+        <el-pagination
+          background
+          layout="total, sizes, prev, pager, next"
+          :total="stockTransactionsTotal"
+          :page-size="stockTransactionsPageSize"
+          :current-page="stockTransactionsPageNumber"
+          :page-sizes="[10, 20, 50]"
+          @current-change="n => $store.dispatch('fetchStockTransactionsPage', { pageNumber: n, pageSize: stockTransactionsPageSize })"
+          @size-change="s => $store.dispatch('fetchStockTransactionsPage', { pageNumber: stockTransactionsPageNumber, pageSize: s })"
+        />
+      </div>
     </el-card>
 
     <!-- Add/Edit Dialog -->
@@ -235,16 +247,28 @@ export default {
         TransactionID: null,
         ShoeID: null,
         TransactionType: "In",
-        Quantity: 0,
+        Quantity: 1,
         Date: new Date().toISOString(),
         Notes: "",
+      },
+      rules: {
+        ShoeID: [{ required: true, message: "Shoe is required", trigger: "change" }],
+        TransactionType: [{ required: true, message: "Type is required", trigger: "change" }],
+        Quantity: [
+          { required: true, message: "Quantity is required", trigger: "change" },
+          { validator: (_r, v, cb) => (Number(v) > 0 ? cb() : cb(new Error("Quantity must be greater than 0"))), trigger: "change" }
+        ],
+        Date: [{ required: true, message: "DateTime is required", trigger: "change" }],
       },
       resizeTimeout: null,
     };
   },
   computed: {
     ...mapGetters([
-      "stockTransactions",
+      "stockTransactionsPagedItems",
+      "stockTransactionsTotal",
+      "stockTransactionsPageNumber",
+      "stockTransactionsPageSize",
       "shoes",
       "loading",
       "canAddEditTransactions",
@@ -252,7 +276,7 @@ export default {
     ]),
     rowsEnriched() {
       const shoeMap = new Map(this.shoes.map((s) => [s.ShoeID, s]));
-      return (this.stockTransactions || []).map((t) => {
+      return (this.stockTransactionsPagedItems || []).map((t) => {
         const s = shoeMap.get(t.ShoeID);
         const brandModel = s
           ? `${s.Brand || "Unknown"} - ${s.Model || ""}`
@@ -387,7 +411,7 @@ export default {
         TransactionID: null,
         ShoeID: null,
         TransactionType: "In",
-        Quantity: 0,
+        Quantity: 1,
         Date: new Date().toISOString(),
         Notes: "",
       };
@@ -448,11 +472,13 @@ export default {
     },
   },
   created() {
-    if (
-      !this.$store.getters.loading &&
-      !this.$store.getters.stockTransactions.length
-    ) {
-      this.$store.dispatch("loadMockData");
+    this.$store.dispatch("fetchStockTransactionsPage", {
+      pageNumber: 1,
+      pageSize: 10,
+    });
+    // ensure shoe list is available for dropdown (FK constraint safety)
+    if (!this.$store.getters.shoes.length) {
+      this.$store.dispatch("loadAll");
     }
   },
   mounted() {
@@ -461,7 +487,7 @@ export default {
 
     // Ensure data as well for shoes dropdown
     if (!this.$store.getters.shoes.length) {
-      this.$store.dispatch("loadMockData");
+      this.$store.dispatch("loadAll");
     }
   },
   beforeUnmount() {

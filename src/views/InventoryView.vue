@@ -79,6 +79,18 @@
           </el-table-column>
         </el-table>
       </div>
+      <div class="pagination">
+        <el-pagination
+          background
+          layout="total, sizes, prev, pager, next"
+          :total="shoesPageTotal"
+          :page-size="shoesPageSize"
+          :current-page="shoesPageNumber"
+          :page-sizes="[10, 20, 50]"
+          @current-change="n => $store.dispatch('fetchShoesPage', { pageNumber: n, pageSize: shoesPageSize })"
+          @size-change="s => $store.dispatch('fetchShoesPage', { pageNumber: shoesPageNumber, pageSize: s })"
+        />
+      </div>
     </el-card>
 
     <el-dialog
@@ -202,11 +214,20 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["shoes", "loading", "canCrudShoes", "canDeleteMasterData"]),
+    ...mapGetters([
+      "shoes",
+      "loading",
+      "canCrudShoes",
+      "canDeleteMasterData",
+      "shoesPageItems",
+      "shoesPageTotal",
+      "shoesPageNumber",
+      "shoesPageSize",
+    ]),
     filteredShoes() {
       const q = (this.search || "").toLowerCase();
-      if (!q) return this.shoes;
-      return this.shoes.filter(
+      if (!q) return this.shoesPageItems;
+      return this.shoesPageItems.filter(
         (s) =>
           String(s.Brand || "")
             .toLowerCase()
@@ -295,9 +316,7 @@ export default {
     },
   },
   created() {
-    if (!this.$store.getters.loading && !this.$store.getters.shoes.length) {
-      this.$store.dispatch("loadMockData");
-    }
+    this.$store.dispatch("fetchShoesPage", { pageNumber: 1, pageSize: 10 });
   },
   mounted() {
     this.updateTableHeight();
