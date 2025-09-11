@@ -21,14 +21,10 @@ module.exports = defineConfig({
         changeOrigin: true,
         secure: false, // self-signed dev certs
         ws: true,
-        // Note: pathRewrite removes /api from the forwarded path.
-        // We'll NOT use /api prefix from the frontend per Option B, but we keep this for flexibility.
         pathRewrite: { "^/api": "" },
         logLevel: "info",
       },
-
-      // Option B: direct controller routes without /api prefix
-      // Rewrite to include /api so it matches [Route("api/[controller]")]
+      // New proxies for each controller, removing the /api prefix
       "^/(Shoes|Suppliers|PurchaseRecord|StockTransmission)": {
         target: "https://localhost:7183",
         changeOrigin: true,

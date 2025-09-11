@@ -23,7 +23,11 @@
             />
             <el-tooltip
               v-if="canCrudPurchases"
-              :content="dataReady ? 'Add a new purchase' : 'Load or create Shoes and Suppliers first'"
+              :content="
+                dataReady
+                  ? 'Add a new purchase'
+                  : 'Load or create Shoes and Suppliers first'
+              "
               placement="top"
             >
               <span>
@@ -51,15 +55,28 @@
           :height="tableHeight"
           v-loading="loading"
         >
-          <el-table-column prop="PurchaseDateFmt" label="Date" min-width="160" sortable />
+          <el-table-column
+            prop="PurchaseDateFmt"
+            label="Date"
+            min-width="160"
+            sortable
+          />
           <el-table-column prop="ShoeLabel" label="Shoe" min-width="220" />
-          <el-table-column prop="SourceLabel" label="Supplier" min-width="220" />
+          <el-table-column
+            prop="SourceLabel"
+            label="Supplier"
+            min-width="220"
+          />
           <el-table-column prop="Quantity" label="Qty" width="100" />
           <el-table-column prop="UnitPrice" label="Unit Price" width="120">
-            <template #default="scope">₱{{ formatCurrency(scope.row.UnitPrice) }}</template>
+            <template #default="scope"
+              >₱{{ formatCurrency(scope.row.UnitPrice) }}</template
+            >
           </el-table-column>
           <el-table-column prop="TotalCost" label="Total Cost" width="130">
-            <template #default="scope">₱{{ formatCurrency(scope.row.TotalCost) }}</template>
+            <template #default="scope"
+              >₱{{ formatCurrency(scope.row.TotalCost) }}</template
+            >
           </el-table-column>
 
           <el-table-column fixed="right" label="Actions" width="160">
@@ -85,7 +102,9 @@
                   @confirm="onDelete(scope.row)"
                 >
                   <template #reference>
-                    <el-button link type="danger" size="small">Delete</el-button>
+                    <el-button link type="danger" size="small"
+                      >Delete</el-button
+                    >
                   </template>
                 </el-popconfirm>
               </el-space>
@@ -102,8 +121,20 @@
           :page-size="purchaseRecordsPageSize"
           :current-page="purchaseRecordsPageNumber"
           :page-sizes="[10, 20, 50]"
-          @current-change="n => $store.dispatch('fetchPurchaseRecordsPage', { pageNumber: n, pageSize: purchaseRecordsPageSize })"
-          @size-change="s => $store.dispatch('fetchPurchaseRecordsPage', { pageNumber: purchaseRecordsPageNumber, pageSize: s })"
+          @current-change="
+            (n) =>
+              $store.dispatch('fetchPurchaseRecordsPage', {
+                pageNumber: n,
+                pageSize: purchaseRecordsPageSize,
+              })
+          "
+          @size-change="
+            (s) =>
+              $store.dispatch('fetchPurchaseRecordsPage', {
+                pageNumber: purchaseRecordsPageNumber,
+                pageSize: s,
+              })
+          "
         />
       </div>
     </el-card>
@@ -115,7 +146,12 @@
     >
       <el-form :model="form" :rules="rules" ref="formRef" label-width="140px">
         <el-form-item label="Shoe" prop="ShoeID">
-          <el-select v-model="form.ShoeID" filterable placeholder="Select shoe" :disabled="!canCrudPurchases">
+          <el-select
+            v-model="form.ShoeID"
+            filterable
+            placeholder="Select shoe"
+            :disabled="!canCrudPurchases"
+          >
             <el-option
               v-for="s in shoes"
               :key="s.ShoeID"
@@ -125,7 +161,12 @@
           </el-select>
         </el-form-item>
         <el-form-item label="Supplier" prop="SourceID">
-          <el-select v-model="form.SourceID" filterable placeholder="Select supplier" :disabled="!canCrudPurchases">
+          <el-select
+            v-model="form.SourceID"
+            filterable
+            placeholder="Select supplier"
+            :disabled="!canCrudPurchases"
+          >
             <el-option
               v-for="sup in sources"
               :key="sup.SourceID"
@@ -144,19 +185,41 @@
           />
         </el-form-item>
         <el-form-item label="Quantity" prop="Quantity">
-          <el-input-number v-model="form.Quantity" :min="1" :step="1" :disabled="!canCrudPurchases" />
+          <el-input-number
+            v-model="form.Quantity"
+            :min="1"
+            :step="1"
+            :disabled="!canCrudPurchases"
+          />
         </el-form-item>
         <el-form-item label="Unit Price" prop="UnitPrice">
-          <el-input-number v-model="form.UnitPrice" :min="0" :step="1" :precision="2" :disabled="!canCrudPurchases" />
+          <el-input-number
+            v-model="form.UnitPrice"
+            :min="0"
+            :step="1"
+            :precision="2"
+            :disabled="!canCrudPurchases"
+          />
         </el-form-item>
         <el-form-item label="Total Cost">
-          <el-input-number :model-value="totalCost" :min="0" :step="1" :precision="2" disabled />
+          <el-input-number
+            :model-value="totalCost"
+            :min="0"
+            :step="1"
+            :precision="2"
+            disabled
+          />
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="onCancel">Cancel</el-button>
-          <el-button type="primary" @click="onSave" :disabled="!canCrudPurchases">Save</el-button>
+          <el-button
+            type="primary"
+            @click="onSave"
+            :disabled="!canCrudPurchases"
+            >Save</el-button
+          >
         </div>
       </template>
     </el-dialog>
@@ -166,6 +229,7 @@
 <script>
 import { mapGetters } from "vuex";
 import { ElMessage } from "element-plus";
+import { formatDate } from "@/utils/dates";
 
 export default {
   name: "PurchaseRecordsView",
@@ -186,11 +250,37 @@ export default {
         TotalCost: 0,
       },
       rules: {
-        ShoeID: [{ required: true, message: "Shoe is required", trigger: "change" }],
-        SourceID: [{ required: true, message: "Supplier is required", trigger: "change" }],
-        PurchaseDate: [{ required: true, message: "Date & Time is required", trigger: "change" }],
-        Quantity: [{ required: true, message: "Quantity is required", trigger: "change" }],
-        UnitPrice: [{ required: true, message: "Unit Price is required", trigger: "change" }],
+        ShoeID: [
+          { required: true, message: "Shoe is required", trigger: "change" },
+        ],
+        SourceID: [
+          {
+            required: true,
+            message: "Supplier is required",
+            trigger: "change",
+          },
+        ],
+        PurchaseDate: [
+          {
+            required: true,
+            message: "Date & Time is required",
+            trigger: "change",
+          },
+        ],
+        Quantity: [
+          {
+            required: true,
+            message: "Quantity is required",
+            trigger: "change",
+          },
+        ],
+        UnitPrice: [
+          {
+            required: true,
+            message: "Unit Price is required",
+            trigger: "change",
+          },
+        ],
         // TotalCost is auto-calculated from UnitPrice * Quantity
       },
       resizeTimeout: null,
@@ -209,7 +299,12 @@ export default {
       "canCrudPurchases",
     ]),
     dataReady() {
-      return (this.shoes && this.shoes.length > 0) && (this.sources && this.sources.length > 0);
+      return (
+        this.shoes &&
+        this.shoes.length > 0 &&
+        this.sources &&
+        this.sources.length > 0
+      );
     },
     rowsFilteredSorted() {
       const shoeMap = new Map(this.shoes.map((s) => [s.ShoeID, s]));
@@ -219,19 +314,38 @@ export default {
         const sup = supplierMap.get(r.SourceID);
         return {
           ...r,
-          ShoeLabel: s ? `${s.Brand || "Unknown"} - ${s.Model || ""}` : `Shoe #${r.ShoeID}`,
+          ShoeLabel: s
+            ? `${s.Brand || "Unknown"} - ${s.Model || ""}`
+            : `Shoe #${r.ShoeID}`,
           SourceLabel: sup ? sup.Name : `Supplier #${r.SourceID}`,
           PurchaseDateFmt: this.formatDate(r.PurchaseDate),
         };
       });
 
       // date filter
-      if (this.dateRange && this.dateRange.length === 2 && this.dateRange[0] && this.dateRange[1]) {
+      if (
+        this.dateRange &&
+        this.dateRange.length === 2 &&
+        this.dateRange[0] &&
+        this.dateRange[1]
+      ) {
         const start = new Date(this.dateRange[0]);
         const end = new Date(this.dateRange[1]);
         rows = rows.filter((r) => {
           const d = new Date(r.PurchaseDate);
-          return d >= start && d <= new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999);
+          return (
+            d >= start &&
+            d <=
+              new Date(
+                end.getFullYear(),
+                end.getMonth(),
+                end.getDate(),
+                23,
+                59,
+                59,
+                999
+              )
+          );
         });
       }
 
@@ -246,7 +360,9 @@ export default {
       }
 
       // sort desc by date
-      return rows.sort((a, b) => new Date(b.PurchaseDate) - new Date(a.PurchaseDate));
+      return rows.sort(
+        (a, b) => new Date(b.PurchaseDate) - new Date(a.PurchaseDate)
+      );
     },
     formDate: {
       get() {
@@ -264,6 +380,7 @@ export default {
     },
   },
   methods: {
+    formatDate,
     formatCurrency(num) {
       try {
         return new Intl.NumberFormat("en-PH", {
@@ -273,11 +390,6 @@ export default {
       } catch {
         return String(num);
       }
-    },
-    formatDate(dateStr) {
-      const d = new Date(dateStr);
-      if (isNaN(d)) return "";
-      return d.toLocaleString();
     },
     shoeLabel(s) {
       return `${s.Brand || "Unknown"} - ${s.Model || ""}`;
@@ -294,13 +406,17 @@ export default {
         UnitPrice: 0,
         TotalCost: 0,
       };
-      this.$nextTick(() => this.$refs.formRef && this.$refs.formRef.clearValidate());
+      this.$nextTick(
+        () => this.$refs.formRef && this.$refs.formRef.clearValidate()
+      );
     },
     openEdit(row) {
       this.dialogMode = "edit";
       this.dialogVisible = true;
       this.form = { ...row };
-      this.$nextTick(() => this.$refs.formRef && this.$refs.formRef.clearValidate());
+      this.$nextTick(
+        () => this.$refs.formRef && this.$refs.formRef.clearValidate()
+      );
     },
     onCancel() {
       this.dialogVisible = false;
@@ -309,8 +425,12 @@ export default {
       this.$refs.formRef.validate(async (valid) => {
         if (!valid) return;
         // quick FK sanity check to avoid 500s
-        const shoeExists = this.shoes.some((s) => Number(s.ShoeID) === Number(this.form.ShoeID));
-        const supExists = this.sources.some((s) => Number(s.SourceID) === Number(this.form.SourceID));
+        const shoeExists = this.shoes.some(
+          (s) => Number(s.ShoeID) === Number(this.form.ShoeID)
+        );
+        const supExists = this.sources.some(
+          (s) => Number(s.SourceID) === Number(this.form.SourceID)
+        );
         if (!shoeExists || !supExists) {
           ElMessage.error("Invalid Shoe or Supplier selection.");
           return;
@@ -353,9 +473,15 @@ export default {
   },
   created() {
     // initial page load
-    this.$store.dispatch("fetchPurchaseRecordsPage", { pageNumber: 1, pageSize: 10 });
+    this.$store.dispatch("fetchPurchaseRecordsPage", {
+      pageNumber: 1,
+      pageSize: 10,
+    });
     // ensure dropdown data present
-    if (!this.$store.getters.shoes.length || !this.$store.getters.sources.length) {
+    if (
+      !this.$store.getters.shoes.length ||
+      !this.$store.getters.sources.length
+    ) {
       this.$store.dispatch("loadAll");
     }
   },

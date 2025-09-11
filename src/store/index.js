@@ -82,7 +82,8 @@ function purchaseDtoToState(dto) {
     ShoeID: dto.shoeId,
     // Prefer supplierId if present; fallback to sourceId for compatibility
     SourceID: dto.supplierId ?? dto.sourceId,
-    PurchaseDate: dto.purchaseDate,
+    // Accept either 'purchase' or 'purchaseDate' from backend
+    PurchaseDate: dto.purchase ?? dto.purchaseDate,
     Quantity: dto.quantity,
     UnitPrice: dto.unitPrice,
     TotalCost: dto.totalCost,
@@ -102,6 +103,8 @@ function purchaseStateToDto(p) {
     // Send both, server will bind the one it expects
     supplierId,
     sourceId: supplierId,
+    // Backend requires 'purchase' field; also send 'purchaseDate' for compatibility
+    purchase: new Date(d).toISOString(),
     purchaseDate: new Date(d).toISOString(),
     quantity,
     unitPrice,
@@ -123,17 +126,17 @@ function formatDateISO(dateStr) {
 }
 
 // Format a Date object to local time without timezone suffix: "YYYY-MM-DDTHH:mm:ss"
-function formatLocalDateTime(d) {
-  if (!(d instanceof Date)) d = new Date(d);
-  if (isNaN(d)) return "";
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mi = String(d.getMinutes()).padStart(2, "0");
-  const ss = String(d.getSeconds()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`;
-}
+// function formatLocalDateTime(d) {
+//   if (!(d instanceof Date)) d = new Date(d);
+//   if (isNaN(d)) return "";
+//   const yyyy = d.getFullYear();
+//   const mm = String(d.getMonth() + 1).padStart(2, "0");
+//   const dd = String(d.getDate()).padStart(2, "0");
+//   const hh = String(d.getHours()).padStart(2, "0");
+//   const mi = String(d.getMinutes()).padStart(2, "0");
+//   const ss = String(d.getSeconds()).padStart(2, "0");
+//   return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`;
+// }
 
 async function fetchAllPaged(path, mapItem, pageSize = 100) {
   let pageNumber = 1;
@@ -232,7 +235,8 @@ export default createStore({
     stockTransactionsPage: (state) => state.stockTransactionsPage,
     stockTransactionsPagedItems: (state) => state.stockTransactionsPage.items,
     stockTransactionsTotal: (state) => state.stockTransactionsPage.totalCount,
-    stockTransactionsPageNumber: (state) => state.stockTransactionsPage.pageNumber,
+    stockTransactionsPageNumber: (state) =>
+      state.stockTransactionsPage.pageNumber,
     stockTransactionsPageSize: (state) => state.stockTransactionsPage.pageSize,
 
     loading: (state) => state.loading,
@@ -246,8 +250,10 @@ export default createStore({
     canManageUsers: (state, getters) => getters.isAdmin,
     canViewReports: () => true,
     canCrudShoes: (state, getters) => getters.isAdmin || getters.isInventory,
-    canCrudSuppliers: (state, getters) => getters.isAdmin || getters.isInventory,
-    canAddEditTransactions: (state, getters) => getters.isAdmin || getters.isInventory,
+    canCrudSuppliers: (state, getters) =>
+      getters.isAdmin || getters.isInventory,
+    canAddEditTransactions: (state, getters) =>
+      getters.isAdmin || getters.isInventory,
     canDeleteTransactions: (state, getters) => getters.isAdmin,
     canDeleteMasterData: (state, getters) => getters.isAdmin,
     // purchases are admin-controlled
@@ -279,7 +285,10 @@ export default createStore({
         const qty = Number(s.CurrentStock) || 0;
         map.set(key, (map.get(key) || 0) + qty);
       }
-      return Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+      return Array.from(map.entries()).map(([name, value]) => ({
+        name,
+        value,
+      }));
     },
 
     brandChartOption: (state, getters) => ({
@@ -324,7 +333,11 @@ export default createStore({
       return {
         grid: { left: 40, right: 20, bottom: 30, top: 30 },
         tooltip: { trigger: "axis" },
-        xAxis: { type: "category", data: ts.xAxisData, axisLabel: { rotate: 45 } },
+        xAxis: {
+          type: "category",
+          data: ts.xAxisData,
+          axisLabel: { rotate: 45 },
+        },
         yAxis: { type: "value" },
         series: [
           {
@@ -380,8 +393,14 @@ export default createStore({
       state.data.shoes.push(shoe);
     },
     updateShoe(state, updated) {
-      const idx = state.data.shoes.findIndex((s) => s.ShoeID === updated.ShoeID);
-      if (idx !== -1) state.data.shoes.splice(idx, 1, { ...state.data.shoes[idx], ...updated });
+      const idx = state.data.shoes.findIndex(
+        (s) => s.ShoeID === updated.ShoeID
+      );
+      if (idx !== -1)
+        state.data.shoes.splice(idx, 1, {
+          ...state.data.shoes[idx],
+          ...updated,
+        });
     },
     deleteShoe(state, id) {
       state.data.shoes = state.data.shoes.filter((s) => s.ShoeID !== id);
@@ -392,8 +411,14 @@ export default createStore({
       state.data.sources.push(source);
     },
     updateSource(state, updated) {
-      const idx = state.data.sources.findIndex((s) => s.SourceID === updated.SourceID);
-      if (idx !== -1) state.data.sources.splice(idx, 1, { ...state.data.sources[idx], ...updated });
+      const idx = state.data.sources.findIndex(
+        (s) => s.SourceID === updated.SourceID
+      );
+      if (idx !== -1)
+        state.data.sources.splice(idx, 1, {
+          ...state.data.sources[idx],
+          ...updated,
+        });
     },
     deleteSource(state, id) {
       state.data.sources = state.data.sources.filter((s) => s.SourceID !== id);
@@ -404,12 +429,19 @@ export default createStore({
       state.data.stockTransactions.push(tx);
     },
     updateTransaction(state, updated) {
-      const idx = state.data.stockTransactions.findIndex((t) => t.TransactionID === updated.TransactionID);
+      const idx = state.data.stockTransactions.findIndex(
+        (t) => t.TransactionID === updated.TransactionID
+      );
       if (idx !== -1)
-        state.data.stockTransactions.splice(idx, 1, { ...state.data.stockTransactions[idx], ...updated });
+        state.data.stockTransactions.splice(idx, 1, {
+          ...state.data.stockTransactions[idx],
+          ...updated,
+        });
     },
     deleteTransaction(state, id) {
-      state.data.stockTransactions = state.data.stockTransactions.filter((t) => t.TransactionID !== id);
+      state.data.stockTransactions = state.data.stockTransactions.filter(
+        (t) => t.TransactionID !== id
+      );
     },
 
     // Purchases
@@ -417,12 +449,19 @@ export default createStore({
       state.data.purchaseRecords.push(p);
     },
     updatePurchase(state, updated) {
-      const idx = state.data.purchaseRecords.findIndex((r) => r.PurchaseID === updated.PurchaseID);
+      const idx = state.data.purchaseRecords.findIndex(
+        (r) => r.PurchaseID === updated.PurchaseID
+      );
       if (idx !== -1)
-        state.data.purchaseRecords.splice(idx, 1, { ...state.data.purchaseRecords[idx], ...updated });
+        state.data.purchaseRecords.splice(idx, 1, {
+          ...state.data.purchaseRecords[idx],
+          ...updated,
+        });
     },
     deletePurchase(state, id) {
-      state.data.purchaseRecords = state.data.purchaseRecords.filter((r) => r.PurchaseID !== id);
+      state.data.purchaseRecords = state.data.purchaseRecords.filter(
+        (r) => r.PurchaseID !== id
+      );
     },
   },
 
@@ -534,7 +573,10 @@ export default createStore({
     async addSource({ commit, getters }, payload) {
       if (!getters.canCrudSuppliers) throw new Error("Not allowed");
       const dto = supplierStateToDto(payload);
-      const created = await postJson("/Suppliers", { ...dto, supplierId: undefined });
+      const created = await postJson("/Suppliers", {
+        ...dto,
+        supplierId: undefined,
+      });
       const stateObj = supplierDtoToState(created);
       commit("addSource", stateObj);
       return stateObj;
@@ -596,7 +638,10 @@ export default createStore({
       const qty = Number(dto.quantity) || 0;
       const unit = Number(dto.unitPrice) || 0;
       dto.totalCost = Number((qty * unit).toFixed(2));
-      const created = await postJson("/PurchaseRecord", { ...dto, purchaseId: undefined });
+      const created = await postJson("/PurchaseRecord", {
+        ...dto,
+        purchaseId: undefined,
+      });
       const stateObj = purchaseDtoToState(created);
       commit("addPurchase", stateObj);
       // refresh current purchases page so UI updates immediately
